@@ -1,9 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "My Hub | Gravity Style",
-   LoadingTitle = "Starting Fast Attack...",
-   LoadingSubtitle = "No Animation Mode",
+   Name = "Redz Private | Sea 1",
+   LoadingTitle = "Starting Full Auto...",
+   LoadingSubtitle = "Fast Attack & Gravity",
    ConfigurationSaving = { Enabled = false }
 })
 
@@ -21,7 +21,7 @@ local function GetQuest()
 end
 
 Tab:CreateToggle({
-   Name = "Auto Farm Level",
+   Name = "Redz Fast Farm (No Click)",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoFarm = Value
@@ -32,6 +32,14 @@ Tab:CreateToggle({
                   local lp = game.Players.LocalPlayer
                   local character = lp.Character
                   local q = GetQuest()
+
+                  if _G.AutoFarm then
+                      local bv = character.HumanoidRootPart:FindFirstChild("G-Control") or Instance.new("BodyVelocity")
+                      bv.Name = "G-Control"
+                      bv.Velocity = Vector3.new(0, 0, 0)
+                      bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                      bv.Parent = character.HumanoidRootPart
+                  end
 
                   if not character:FindFirstChildOfClass("Tool") then
                       for _, v in pairs(lp.Backpack:GetChildren()) do
@@ -49,21 +57,22 @@ Tab:CreateToggle({
                           if v.Name == q[3] and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                               repeat
                                   task.wait()
-                                  
-                                  -- [[ Mob Bring & Position Fix ]]
                                   v.HumanoidRootPart.CanCollide = false
-                                  v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
-                                  v.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, -5, 0)
                                   character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-
-                                  -- [[ Gravity Style Fast Attack ]]
+                                  
+                                  -- [[ Redz Original Attack System ]]
                                   local tool = character:FindFirstChildOfClass("Tool")
                                   if tool then
+                                      -- Damage အလိုလိုတက်အောင် Remote ၃ မျိုးစလုံးကို ပစ်မှတ်ထားတာ
                                       game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0)
+                                      game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0.1)
+                                      
+                                      -- Animation မပြဘဲ Damage တန်းထိစေတဲ့ Click Simulation
                                       tool:Activate()
+                                      game:GetService("VirtualUser"):CaptureController()
+                                      game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
                                   end
 
-                                  -- [[ No Animation ]]
                                   if character.Humanoid:FindFirstChild("Animator") then
                                       character.Humanoid.Animator:Destroy()
                                   end
@@ -72,6 +81,9 @@ Tab:CreateToggle({
                       end
                   end
               end)
+          end
+          if not _G.AutoFarm and game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild("G-Control") then
+              game.Players.LocalPlayer.Character.HumanoidRootPart["G-Control"]:Destroy()
           end
       end)
    end,
