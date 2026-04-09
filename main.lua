@@ -30,17 +30,28 @@ Tab:CreateToggle({
               task.wait()
               pcall(function()
                   local q = GetQuest()
-                  if not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible then
-                      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = q[4]
+                  local lp = game.Players.LocalPlayer
+                  
+                  if not lp.Character:FindFirstChildOfClass("Tool") then
+                      for _, v in pairs(lp.Backpack:GetChildren()) do
+                          if v:IsA("Tool") and (v.ToolTip == "Melee" or v.ToolTip == "Sword") then
+                              lp.Character.Humanoid:EquipTool(v)
+                              break
+                          end
+                      end
+                  end
+
+                  if not lp.PlayerGui.Main.Quest.Visible then
+                      lp.Character.HumanoidRootPart.CFrame = q[4]
                       game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", q[1], q[2])
                   else
                       for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                           if v.Name == q[3] and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                               repeat
                                   task.wait()
-                                  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0)
-                                  game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0.4)
-                              until not _G.AutoFarm or v.Humanoid.Health <= 0 or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
+                                  lp.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 4, 0)
+                                  game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0.1)
+                              until not _G.AutoFarm or v.Humanoid.Health <= 0 or not lp.PlayerGui.Main.Quest.Visible
                           end
                       end
                   end
