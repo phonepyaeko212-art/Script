@@ -1,18 +1,14 @@
 local RedzLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/REALVOY/RedzLibV2/main/Source.lua"))()
 
 local Window = RedzLib:MakeWindow({
-  Name = "Redz Hub (Lite v2)",
-  SubTitle = "Fast & Smooth",
+  Name = "Redz Hub",
+  SubTitle = "Sea 1 Auto Farm",
   DiscordID = "123456789"
 })
 
 local MainTab = Window:MakeTab({"Auto Farm", "home"})
 
 _G.AutoFarm = false
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LP = Players.LocalPlayer
 
 local QuestData = {
     {Level = 0, QuestName = "BanditQuest1", QuestLevel = 1, MonsterName = "Bandit", NPCCFrame = CFrame.new(1059, 15, 1549)},
@@ -38,7 +34,7 @@ local QuestData = {
 }
 
 local function GetMyQuest()
-    local MyLevel = LP.Data.Level.Value
+    local MyLevel = game.Players.LocalPlayer.Data.Level.Value
     for i = #QuestData, 1, -1 do
         if MyLevel >= QuestData[i].Level then
             return QuestData[i]
@@ -46,63 +42,37 @@ local function GetMyQuest()
     end
 end
 
-local function TP(TargetCFrame)
-    if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-        local Distance = (TargetCFrame.p - LP.Character.HumanoidRootPart.Position).Magnitude
-        TweenService:Create(LP.Character.HumanoidRootPart, TweenInfo.new(Distance / 250, Enum.EasingStyle.Linear), {CFrame = TargetCFrame}):Play()
-    end
-end
-
-local AttackRemote = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack")
-
-RunService.Stepped:Connect(function()
-    if _G.AutoFarm and LP.Character then
-        for _, v in pairs(LP.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
-
 MainTab:AddToggle({
-  Name = "Fast Auto Farm",
+  Name = "Auto Farm",
   Default = false,
-  Callback = function(Value)
-    _G.AutoFarm = Value
-    task.spawn(function()
-        while _G.AutoFarm do
-            task.wait()
+  Callback = function(v)
+    _G.AutoFarm = v
+  end
+})
+
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoFarm then
             pcall(function()
-                local QuestGui = LP.PlayerGui.Main.Quest
-                if not QuestGui.Visible then
-                    local Data = GetMyQuest()
-                    TP(Data.NPCCFrame)
-                    if (LP.Character.HumanoidRootPart.Position - Data.NPCCFrame.p).Magnitude < 10 then
-                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Data.QuestName, Data.QuestLevel)
-                    end
+                local Data = GetMyQuest()
+                if not game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Data.NPCCFrame
+                    task.wait(0.5)
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", Data.QuestName, Data.QuestLevel)
                 else
-                    local Data = GetMyQuest()
-                    if not LP.Character:FindFirstChildOfClass("Tool") then
-                        for _, v in pairs(LP.Backpack:GetChildren()) do
-                            if v:IsA("Tool") and (v.ToolTip == "Melee" or v.ToolTip == "Sword") then 
-                                LP.Character.Humanoid:EquipTool(v)
-                                break
-                            end
-                        end
-                    end
                     for _, monster in pairs(game.Workspace.Enemies:GetChildren()) do
                         if monster.Name == Data.MonsterName and monster:FindFirstChild("Humanoid") and monster.Humanoid.Health > 0 then
                             repeat
-                                TP(monster.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0))
-                                AttackRemote:FireServer(0.4000000059604645)
                                 task.wait()
-                            until not _G.AutoFarm or not monster.Parent or monster.Humanoid.Health <= 0 or not QuestGui.Visible
+                                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = monster.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0)
+                                game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0.4)
+                            until not _G.AutoFarm or monster.Humanoid.Health <= 0 or not game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible
                         end
                     end
                 end
             end)
         end
-    end)
-  end
-})
+    end
+end)
 
 RedzLib:Init()
