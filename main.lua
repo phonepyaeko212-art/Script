@@ -1,9 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "My Hub | Sea 1",
-   LoadingTitle = "Starting Script...",
-   LoadingSubtitle = "Fast Auto Farm",
+   Name = "My Hub | Gravity Style",
+   LoadingTitle = "Starting Fast Attack...",
+   LoadingSubtitle = "No Animation Mode",
    ConfigurationSaving = { Enabled = false }
 })
 
@@ -29,28 +29,44 @@ Tab:CreateToggle({
           while _G.AutoFarm do
               task.wait()
               pcall(function()
-                  local q = GetQuest()
                   local lp = game.Players.LocalPlayer
-                  
-                  if not lp.Character:FindFirstChildOfClass("Tool") then
+                  local character = lp.Character
+                  local q = GetQuest()
+
+                  if not character:FindFirstChildOfClass("Tool") then
                       for _, v in pairs(lp.Backpack:GetChildren()) do
                           if v:IsA("Tool") and (v.ToolTip == "Melee" or v.ToolTip == "Sword") then
                               lp.Character.Humanoid:EquipTool(v)
-                              break
                           end
                       end
                   end
 
                   if not lp.PlayerGui.Main.Quest.Visible then
-                      lp.Character.HumanoidRootPart.CFrame = q[4]
+                      character.HumanoidRootPart.CFrame = q[4]
                       game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", q[1], q[2])
                   else
                       for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
                           if v.Name == q[3] and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                               repeat
                                   task.wait()
-                                  lp.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 4, 0)
-                                  game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0.1)
+                                  
+                                  -- [[ Mob Bring & Position Fix ]]
+                                  v.HumanoidRootPart.CanCollide = false
+                                  v.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                                  v.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, -5, 0)
+                                  character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+                                  -- [[ Gravity Style Fast Attack ]]
+                                  local tool = character:FindFirstChildOfClass("Tool")
+                                  if tool then
+                                      game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack"):FireServer(0)
+                                      tool:Activate()
+                                  end
+
+                                  -- [[ No Animation ]]
+                                  if character.Humanoid:FindFirstChild("Animator") then
+                                      character.Humanoid.Animator:Destroy()
+                                  end
                               until not _G.AutoFarm or v.Humanoid.Health <= 0 or not lp.PlayerGui.Main.Quest.Visible
                           end
                       end
@@ -59,10 +75,4 @@ Tab:CreateToggle({
           end
       end)
    end,
-})
-
-Rayfield:Notify({
-   Title = "Loaded!",
-   Content = "Ready to Farm!",
-   Duration = 3,
 })
